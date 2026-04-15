@@ -24,6 +24,14 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
+          # Create credential helper script
+          cat > ~/.git-credential-hf << 'EOF'
+          #!/bin/bash
+          echo "username=oauth2"
+          echo "password=${HF_TOKEN}"
+          EOF
+          chmod +x ~/.git-credential-hf
+
           # Clone HF Space (skip LFS files initially)
           GIT_LFS_SKIP_SMUDGE=1 git clone https://huggingface.co/spaces/sharjeel17/fashion-cnn hf-space
           cd hf-space
@@ -31,14 +39,10 @@ jobs:
           # Configure git
           git config user.email "action@github.com"
           git config user.name "github-actions"
-
-          # Set credentials for LFS operations
-          git config credential.helper store
-          echo "https://oauth2:${HF_TOKEN}@huggingface.co" > .git/credentials
-          git config credential.helper 'store --file=.git/credentials'
+          git config credential.helper ~/.git-credential-hf
+          git lfs install
 
           # Pull LFS files
-          git lfs install
           git lfs pull
 
           # Copy backend files into HF repo (preserve .git folder)
@@ -46,13 +50,12 @@ jobs:
 
           # Stage and commit changes
           git add .
-          
+
           # Add timestamp to README to trigger rebuild
           echo "# Auto-deployed: $(date '+%Y-%m-%d %H:%M:%S UTC')" >> README.md
           git add README.md
-          
+
           git diff --cached --quiet || git commit -m "🚀 Auto-deploy from GitHub Actions - $(date '+%Y-%m-%d %H:%M:%S UTC')"
 
-          # Push to Hugging Face with token in URL
-          git remote set-url origin https://oauth2:${HF_TOKEN}@huggingface.co/spaces/sharjeel17/fashion-cnn
-          git push origin main
+          # Push to Hugging Face
+          git push https://oauth2:${HF_TOKEN}@huggingface.co/spaces/sharjeel17/fashion-cnn main
