@@ -34,6 +34,9 @@ model = load_model(MODEL_PATH)
 @app.get("/")
 def root():
     return {"message": "Fashion CNN API is running 🚀"}
+@app.get("/health")
+def root():
+    return {"message": "health is good 🚀"}
 
 
 @app.post("/predict", response_model=PredictionResponse)
