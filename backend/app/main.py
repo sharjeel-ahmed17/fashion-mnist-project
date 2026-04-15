@@ -35,7 +35,7 @@ model = load_model(MODEL_PATH)
 def root():
     return {"message": "Fashion CNN API is running 🚀"}
 @app.get("/health")
-def health():
+def health_care():
     return {"message": "health is good 🚀"}
 @app.get("/world")
 def world_cup():
