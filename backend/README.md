@@ -16,4 +16,11 @@ Check out the configuration reference at https://huggingface.co/docs/hub/spaces-
 FastAPI + PyTorch + Hugging Face Deployment
 
 ## Run locally
+```bash
 uvicorn app.main:app --reload
+```
+
+## Features
+- Fashion MNIST classification
+- FastAPI REST API
+- Docker deployment ready
