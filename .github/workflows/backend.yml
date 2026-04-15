@@ -24,12 +24,8 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          # Set HuggingFace token as git credential helper
-          git config --global credential.helper store
-          echo "https://oauth2:$HF_TOKEN@huggingface.co" > ~/.git-credentials
-
           # Clone HF Space (skip LFS files initially)
-          GIT_LFS_SKIP_SMUDGE=1 git clone https://huggingface.co/spaces/sharjeel17/fashion-cnn hf-space
+          GIT_LFS_SKIP_SMUDGE=1 git clone https://oauth2:${HF_TOKEN}@huggingface.co/spaces/sharjeel17/fashion-cnn hf-space
           cd hf-space
 
           # Configure git for this repo
@@ -38,15 +34,14 @@ jobs:
 
           # Pull LFS files with proper authentication
           git lfs install
-          git lfs pull
+          GIT_LFS_SKIP_SMUDGE=0 git lfs pull
 
-          # Copy backend files into HF repo
-          rsync -av --delete ../backend/ ./
+          # Copy backend files into HF repo (preserve .git folder)
+          rsync -av --delete --exclude='.git/' ../backend/ ./
 
           # Stage and commit changes
           git add .
           git diff --cached --quiet || git commit -m "🚀 Auto-deploy from GitHub Actions - $(date '+%Y-%m-%d %H:%M:%S UTC')"
 
           # Push to Hugging Face (including LFS files)
-          git push https://huggingface.co/spaces/sharjeel17/fashion-cnn main
-          git lfs push --all https://huggingface.co/spaces/sharjeel17/fashion-cnn main
+          git push https://oauth2:${HF_TOKEN}@huggingface.co/spaces/sharjeel17/fashion-cnn main
