@@ -20,40 +20,51 @@ jobs:
           git config --global user.email "action@github.com"
           git config --global user.name "github-actions"
 
+      # ✅ DEBUG STEP (very important)
+      - name: Check HF Token
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          if [ -z "$HF_TOKEN" ]; then
+            echo "❌ ERROR: HF_TOKEN missing"
+            exit 1
+          else
+            echo "✅ HF_TOKEN موجود ہے"
+          fi
+
       - name: Deploy to Hugging Face Space
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          # Clone HF Space (skip LFS heavy files first)
+          # Clone HF Space
           GIT_LFS_SKIP_SMUDGE=1 git clone https://huggingface.co/spaces/sharjeel17/fashion-cnn hf-space
 
+          # Go into repo
           cd hf-space
 
-          # Setup Git inside HF repo
+          # Setup Git
           git config user.email "action@github.com"
           git config user.name "github-actions"
 
-          # Install Git LFS
+          # Setup LFS
           git lfs install
-
-          # Pull existing LFS files (model etc.)
           git lfs pull
 
           cd ..
 
-          # Sync backend → HF Space
+          # Sync backend folder → HF repo
           rsync -av --delete --exclude='.git/' backend/ hf-space/
 
           cd hf-space
 
-          # Stage changes
+          # Add changes
           git add .
 
           # Commit only if changes exist
-          git diff --cached --quiet || git commit -m "🚀 Auto deploy - $(date '+%Y-%m-%d %H:%M:%S')"
+          git diff --cached --quiet || git commit -m "🚀 Auto deploy $(date '+%Y-%m-%d %H:%M:%S')"
 
-          # 🔥 FIXED AUTH (IMPORTANT)
+          # 🔥 CRITICAL FIX (AUTH)
           git remote set-url origin https://oauth2:${HF_TOKEN}@huggingface.co/spaces/sharjeel17/fashion-cnn
 
-          # Push
-          git push origin main
+          # Push (reliable)
+          git push origin HEAD:main
