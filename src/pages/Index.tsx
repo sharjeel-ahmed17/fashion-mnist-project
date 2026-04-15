@@ -12,7 +12,7 @@ interface PredictionResponse {
   confidence: number;
 }
 
-const API_URL = "http://localhost:8000/predict";
+const API_URL = import.meta.env.VITE_API_URL;
 
 const Index = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
