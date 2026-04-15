@@ -28,14 +28,16 @@ jobs:
           GIT_LFS_SKIP_SMUDGE=1 git clone https://huggingface.co/spaces/sharjeel17/fashion-cnn hf-space
           cd hf-space
 
-          # Configure git credentials BEFORE LFS operations
+          # Configure git
           git config user.email "action@github.com"
           git config user.name "github-actions"
-          
-          # Set up credential helper for HF token
-          git config credential.helper '!f() { echo "username=oauth2"; echo "password=${HF_TOKEN}"; }; f'
 
-          # Initialize and pull LFS files with authentication
+          # Set credentials for LFS operations
+          git config credential.helper store
+          echo "https://oauth2:${HF_TOKEN}@huggingface.co" > .git/credentials
+          git config credential.helper 'store --file=.git/credentials'
+
+          # Pull LFS files
           git lfs install
           git lfs pull
 
@@ -46,5 +48,6 @@ jobs:
           git add .
           git diff --cached --quiet || git commit -m "🚀 Auto-deploy from GitHub Actions - $(date '+%Y-%m-%d %H:%M:%S UTC')"
 
-          # Push to Hugging Face
-          git push https://huggingface.co/spaces/sharjeel17/fashion-cnn main
+          # Push to Hugging Face with token in URL
+          git remote set-url origin https://oauth2:${HF_TOKEN}@huggingface.co/spaces/sharjeel17/fashion-cnn
+          git push origin main
