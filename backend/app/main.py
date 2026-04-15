@@ -37,9 +37,9 @@ def root():
 @app.get("/health")
 def health():
     return {"message": "health is good 🚀"}
-@app.get("/health")
-def hello():
-    return {"message": "hello world"}
+@app.get("/world")
+def world_cup():
+    return {"message": "world cup 2027"}
 
 
 @app.post("/predict", response_model=PredictionResponse)
