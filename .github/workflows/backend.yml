@@ -2,10 +2,10 @@ name: Deploy Backend (Hugging Face)
 
 on:
   push:
-    paths:
-      - 'backend/**'
     branches:
       - main
+    paths:
+      - 'backend/**'
 
 jobs:
   deploy:
@@ -17,16 +17,22 @@ jobs:
 
       - name: Setup Git
         run: |
-          git config --global user.email "sharjeelahmedofficial2@gmail.com"
+          git config --global user.email "action@github.com"
           git config --global user.name "github-actions"
 
       - name: Push to Hugging Face Space
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          cd backend
-          git init
-          git remote add origin https://huggingface.co/spaces/sharjeel17/fashion-cnn
+          # Clone empty HF repo
+          git clone https://huggingface.co/spaces/sharjeel17/fashion-cnn hf-space
+          
+          # Copy backend files into HF repo
+          rsync -av --delete backend/ hf-space/
+          
+          cd hf-space
+
           git add .
-          git commit -m "auto deploy from github actions"
-          git push https://sharjeel17:$HF_TOKEN@huggingface.co/spaces/sharjeel17/fashion-cnn main --force
+          git commit -m "auto deploy from github actions" || echo "No changes to commit"
+
+          git push https://sharjeel17:$HF_TOKEN@huggingface.co/spaces/sharjeel17/fashion-cnn main
