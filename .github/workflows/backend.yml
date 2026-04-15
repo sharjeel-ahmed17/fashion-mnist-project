@@ -1,0 +1,32 @@
+name: Deploy Backend (Hugging Face)
+
+on:
+  push:
+    paths:
+      - 'backend/**'
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Git
+        run: |
+          git config --global user.email "sharjeelahmedofficial2@gmail.com"
+          git config --global user.name "github-actions"
+
+      - name: Push to Hugging Face Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          cd backend
+          git init
+          git remote add origin https://huggingface.co/spaces/sharjeel17/fashion-cnn
+          git add .
+          git commit -m "auto deploy from github actions"
+          git push https://sharjeel17:$HF_TOKEN@huggingface.co/spaces/sharjeel17/fashion-cnn main --force
