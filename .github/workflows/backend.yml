@@ -46,6 +46,11 @@ jobs:
 
           # Stage and commit changes
           git add .
+          
+          # Add timestamp to README to trigger rebuild
+          echo "# Auto-deployed: $(date '+%Y-%m-%d %H:%M:%S UTC')" >> README.md
+          git add README.md
+          
           git diff --cached --quiet || git commit -m "🚀 Auto-deploy from GitHub Actions - $(date '+%Y-%m-%d %H:%M:%S UTC')"
 
           # Push to Hugging Face with token in URL
