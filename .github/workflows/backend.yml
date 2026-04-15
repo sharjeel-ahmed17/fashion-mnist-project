@@ -20,42 +20,40 @@ jobs:
           git config --global user.email "action@github.com"
           git config --global user.name "github-actions"
 
-      - name: Push to Hugging Face Space
+      - name: Deploy to Hugging Face Space
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          # Create credential helper script
-          cat > ~/.git-credential-hf << 'EOF'
-          #!/bin/bash
-          echo "username=oauth2"
-          echo "password=${HF_TOKEN}"
-          EOF
-          chmod +x ~/.git-credential-hf
-
-          # Clone HF Space (skip LFS files initially)
+          # Clone HF Space (skip LFS heavy files first)
           GIT_LFS_SKIP_SMUDGE=1 git clone https://huggingface.co/spaces/sharjeel17/fashion-cnn hf-space
+
           cd hf-space
 
-          # Configure git
+          # Setup Git inside HF repo
           git config user.email "action@github.com"
           git config user.name "github-actions"
-          git config credential.helper ~/.git-credential-hf
+
+          # Install Git LFS
           git lfs install
 
-          # Pull LFS files
+          # Pull existing LFS files (model etc.)
           git lfs pull
 
-          # Copy backend files into HF repo (preserve .git folder)
-          rsync -av --delete --exclude='.git/' ../backend/ ./
+          cd ..
 
-          # Stage and commit changes
+          # Sync backend → HF Space
+          rsync -av --delete --exclude='.git/' backend/ hf-space/
+
+          cd hf-space
+
+          # Stage changes
           git add .
 
-          # Add timestamp to README to trigger rebuild
-          echo "# Auto-deployed: $(date '+%Y-%m-%d %H:%M:%S UTC')" >> README.md
-          git add README.md
+          # Commit only if changes exist
+          git diff --cached --quiet || git commit -m "🚀 Auto deploy - $(date '+%Y-%m-%d %H:%M:%S')"
 
-          git diff --cached --quiet || git commit -m "🚀 Auto-deploy from GitHub Actions - $(date '+%Y-%m-%d %H:%M:%S UTC')"
+          # 🔥 FIXED AUTH (IMPORTANT)
+          git remote set-url origin https://oauth2:${HF_TOKEN}@huggingface.co/spaces/sharjeel17/fashion-cnn
 
-          # Push to Hugging Face
-          git push https://oauth2:${HF_TOKEN}@huggingface.co/spaces/sharjeel17/fashion-cnn main
+          # Push
+          git push origin main
