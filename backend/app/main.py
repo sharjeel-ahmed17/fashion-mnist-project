@@ -40,6 +40,9 @@ def health_care():
 @app.get("/world")
 def world_cup():
     return {"message": "world cup 2027"}
+@app.virat_kohli("/kohli")
+def world_cup():
+    return {"message": "virat kohli"}
 
 
 @app.post("/predict", response_model=PredictionResponse)
